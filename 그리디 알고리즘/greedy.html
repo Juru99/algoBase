@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>그리디 알고리즘</title>
+  </head>
+  <body>
+    <script>
+      // 그리디 알고리즘: 현재 상황에서 지금 당장 좋은 것만 고르는 방법
+      // 그리디 알고리즘은 기준에 따라 좋은 것을 선택하는 알고리즘이므로
+      // 문제에서 '가장 큰 순서대로', '가장 작은 순서대로'와 같은 기준을 알게 모르게 제시해준다.
+
+      // 거스름돈 문제: 가장 큰 화폐 단위부터 돈을 거슬러 주는 것
+      function greedyCoinChange(n) {
+        let count = 0;
+        let coinTypes = [500, 100, 50, 10];
+        for (let coin of coinTypes) {
+          count += Math.floor(n / coin);
+          n %= coin;
+        }
+        return count;
+      }
+
+      // 배낭 문제: 무게 제한이 M인 배낭에 최대 가치를 가지도록 물건을 넣는 문제
+      function greedyKnapsack(weight, items) {
+        let answer = 0;
+        items.sort((a, b) => b.value / b.weight - a.value / a.weight);
+        for (let item of items) {
+          if (weight >= item.weight) {
+            answer += item.value;
+            weight -= item.weight;
+          } else {
+            answer += item.value * (weight / item.weight);
+            break;
+          }
+        }
+        return answer;
+      }
+
+      /* 0/1배낭 문제: 물건을 쪼갤 수 없는 배낭 문제를 해결하기 위해 동적 계획법을 사용
+       * 동적 계획법: 입력 크기가 작은 부분 문제들을 해결한 후, 해당 부분 문제의 해를 활용해서
+         보다 큰 크기의 부분 문제를 해결(bottom-up 방식)
+       * NP-완전 문제: 다항 시간 내에 해결할 수 없는 문제
+       * 근사 알고리즘: 최적화 문제의 근사 해를 구하는 알고리즘
+       */
+      function knapsack(capacity, weights, values) {
+        let n = values.length;
+        let dp = Array.from({ length: n + 1 }, () =>
+          Array(capacity + 1).fill(0)
+        );
+        for (let i = 1; i <= n; i++) {
+          for (let w = 1; w <= capacity; w++) {
+            if (weights[i - 1] <= w) {
+              dp[i][w] = Math.max(
+                dp[i - 1][w],
+                dp[i - 1][w - weights[i - 1]] + values[i - 1]
+              );
+            } else {
+              dp[i][w] = dp[i - 1][w];
+            }
+          }
+        }
+        return dp[n][capacity];
+      }
+
+      // 최소 신장 트리: 그래프에서 모든 노드를 포함하면서 사이클이 존재하지 않는 부분 그래프
+      // 실 사용 사례: 컴퓨터 네트워크, 전기 회로, 도로 건설
+      // 비교: 크루스칼은 간선의 개수가 E일 때 O(ElogE), 프림은 정점의 개수가 V일 때 O(V^2)
+
+      // 1. 크루스칼 알고리즘: 최소 비용으로 모든 노드를 연결하는 알고리즘
+      function kruskal(graph) {
+        let parent = Array.from({ length: graph.length }, (_, i) => i);
+        let find = (x) => {
+          if (parent[x] === x) return x;
+          return (parent[x] = find(parent[x]));
+        };
+        let union = (a, b) => {
+          a = find(a);
+          b = find(b);
+          if (a !== b) parent[b] = a;
+        };
+        let answer = 0;
+        graph.sort((a, b) => a[2] - b[2]);
+        for (let [a, b, cost] of graph) {
+          if (find(a) !== find(b)) {
+            union(a, b);
+            answer += cost;
+          }
+        }
+        return answer;
+      }
+
+      // 2. 프림 알고리즘: 최소 비용으로 모든 노드를 연결하는 알고리즘
+      function prim(graph) {
+        let visited = Array(graph.length).fill(false);
+        let dist = Array(graph.length).fill(Infinity);
+        dist[0] = 0;
+        let answer = 0;
+        for (let i = 0; i < graph.length; i++) {
+          let min = Infinity;
+          let idx = -1;
+          for (let j = 0; j < graph.length; j++) {
+            if (!visited[j] && dist[j] < min) {
+              min = dist[j];
+              idx = j;
+            }
+          }
+          visited[idx] = true;
+          answer += min;
+          for (let [to, cost] of graph[idx]) {
+            if (!visited[to] && cost < dist[to]) {
+              dist[to] = cost;
+            }
+          }
+        }
+        return answer;
+      }
+
+      // 단일 출발점 최단 경로: 하나의 정점에서 다른 모든 정점 간의 가장 짧은 경로를 찾는 문제
+      // 실 사용 사례: GPS 소프트웨어, 네트워크 라우터
+
+      /* 1. 데이크스트라 알고리즘: 특정한 노드에서 출발하여
+       * 다른 모든 노드로 가는 최단 경로를 계산하는 알고리즘
+       */
+      function dijkstra(graph, start) {
+        let dist = Array(graph.length).fill(Infinity);
+        dist[start] = 0;
+        let visited = Array(graph.length).fill(false);
+        for (let i = 0; i < graph.length; i++) {
+          let min = Infinity;
+          let idx = -1;
+          for (let j = 0; j < graph.length; j++) {
+            if (!visited[j] && dist[j] < min) {
+              min = dist[j];
+              idx = j;
+            }
+          }
+          visited[idx] = true;
+          for (let [to, cost] of graph[idx]) {
+            if (!visited[to] && dist[to] > dist[idx] + cost) {
+              dist[to] = dist[idx] + cost;
+            }
+          }
+        }
+        return dist;
+      }
+    </script>
+  </body>
+</html>

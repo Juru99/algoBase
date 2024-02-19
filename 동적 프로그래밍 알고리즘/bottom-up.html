@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>동적 프로그래밍</title>
+  </head>
+  <body>
+    <script>
+      /* 동적프로그래밍 방법: Bottom-Up 방식으로, 작은 문제부터 차근차근 답을 도출하는 방식
+       * 동적프로그래밍 방법 예시: 플로이드 알고리즘, 행렬의 연쇄적 곱셈 문제, 최장 공통 부분 수열 문제
+       */
+
+      /* 플로이드 알고리즘: 모든 정점에서 모든 정점으로의 최단 경로를 구하는 알고리즘(모든 쌍 간의 최단 경로 문제)
+       * 플로이드 알고리즘과 다익스트라 알고리즘 차이: 다익스트라 알고리즘은 하나의 정점에서 다른 모든 정점으로의 최단 경로를 구하는 알고리즘
+       * 플로이드 알고리즘과 다익스트라 알고리즘 성능: 플로이드 알고리즘은 시간 복잡도가 O(N^3)이므로 정점의 개수가 많을수록 성능이 떨어짐
+       * 음수 가중치가 없는 그래프에서 사용 가능
+       * 음수 가중치가 있는 그래프에서는 벨만-포드 알고리즘 사용
+       */
+      function floyd(graph) {
+        const dist = graph.slice();
+        const n = graph.length;
+        for (let k = 0; k < n; k++) {
+          for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+              if (dist[i][j] > dist[i][k] + dist[k][j]) {
+                dist[i][j] = dist[i][k] + dist[k][j];
+              }
+            }
+          }
+        }
+        return dist;
+      }
+
+      /* 행렬의 연쇄적 곱셈 문제: 행렬의 곱셈 연산을 수행하는 순서를 결정하는 문제
+       * 행렬의 곱셈 연산 순서에 따라 연산 횟수가 달라짐
+       * 동적 계획법을 사용하여 최소 연산 횟수를 구함
+       * 시간복잡도: O(N^3)
+       */
+      function matrixChainOrder(p) {
+        const n = p.length;
+        const m = Array.from({ length: n }, () => Array(n).fill(0));
+        for (let l = 2; l < n; l++) {
+          for (let i = 1; i < n - l + 1; i++) {
+            let j = i + l - 1;
+            m[i][j] = Number.MAX_SAFE_INTEGER;
+            for (let k = i; k <= j - 1; k++) {
+              let q = m[i][k] + m[k + 1][j] + p[i - 1] * p[k] * p[j];
+              if (q < m[i][j]) {
+                m[i][j] = q;
+              }
+            }
+          }
+        }
+        return m[1][n - 1];
+      }
+
+      /* 최장 공통 부분 수열 문제: 두 수열이 주어졌을 때, 두 수열의 공통 부분 수열 중 가장 긴 것을 찾는 문제
+       * 동적 계획법을 사용하여 최장 공통 부분 수열을 구함
+       * 시간복잡도: O(N^2)
+       */
+      function lcs(X, Y) {
+        const m = X.length;
+        const n = Y.length;
+        const L = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) {
+          for (let j = 0; j <= n; j++) {
+            if (i === 0 || j === 0) {
+              L[i][j] = 0;
+            } else if (X[i - 1] === Y[j - 1]) {
+              L[i][j] = L[i - 1][j - 1] + 1;
+            } else {
+              L[i][j] = Math.max(L[i - 1][j], L[i][j - 1]);
+            }
+          }
+        }
+        return L[m][n];
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>최솟값 찾기</title>
+  </head>
+  <body>
+    <script>
+      // 둘다 시간복잡도 O(n)이지만, findMin2가 더 빠르다.
+      // 그 이유는 findMin2는 배열을 반으로 나누어서 재귀적으로 호출하기 때문이다.
+
+      // 값들을 하나씩 모두 비교해 가면서 최솟값을 찾는 방법
+      function findMin(arr) {
+        let min = arr[0];
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] < min) {
+            min = arr[i];
+          }
+        }
+        return min;
+      }
+
+      // 토너먼트 방식으로 최솟값을 찾는 방법
+      function findMin2(arr) {
+        if (arr.length === 1) {
+          return arr[0];
+        }
+        let left = arr.slice(0, arr.length / 2);
+        let right = arr.slice(arr.length / 2);
+        return Math.min(findMin2(left), findMin2(right));
+      }
+    </script>
+  </body>
+</html>
